@@ -28,11 +28,11 @@ VALUE cDecNumber;
 VALUE cDecContext;
 
 static VALUE context_alloc(VALUE klass) {
-  decContext *dec_context_ptr;
-  VALUE obj; // self
+  decContext *self_ptr;
+  VALUE self;
 
-  obj = Data_Make_Struct(klass, decContext, 0, free, dec_context_ptr);
-  return obj;  
+  self = Data_Make_Struct(klass, decContext, 0, free, self_ptr);
+  return self;
 }
 
 static VALUE num_alloc(VALUE klass) {
@@ -74,17 +74,6 @@ static VALUE num_initialize(int argc, VALUE *argv, VALUE self) {
 
   return self;
 }
-
-static VALUE   dec_number_result_and_ptrs_lhs_rhs( VALUE lhs, VALUE rhs, decNumber *result_ptr, decNumber *lhs_ptr, decNumber *rhs_ptr ) {
-  VALUE result;
-
-  Data_Get_Struct(lhs, decNumber, lhs_ptr);
-  Data_Get_Struct(rhs,  decNumber, rhs_ptr);
-  result = rb_funcall( cDecNumber, rb_intern("new"), 0 );
-  Data_Get_Struct(result,  decNumber, result_ptr);
-
-  return result;
-};
 
 // TODO: does this work?
 static VALUE dec_number_from_struct(decNumber source_dec_num) {
