@@ -15,10 +15,10 @@
 # define DEBUGPRINT(_fmt, ...)  DEBUGPRINT2(WHERESTR _fmt, WHEREARG, __VA_ARGS__)
 #endif
 
-#define dec_num_setup( result, lval, rval, result_ptr, lval_ptr, rval_ptr, context ) \
-  decContextDefault(&(context), DEC_INIT_BASE);				\
+#define dec_num_setup_rval( result, self, rval, result_ptr, self_ptr, rval_ptr, context_ptr ) \
+  Data_Get_Struct( rb_iv_get(self, "@context"), decContext, context_ptr);\
   rval = rb_funcall( rval, rb_intern("to_dec_number"), 0 );		\
-  Data_Get_Struct( lval, decNumber, lval_ptr);				\
+  Data_Get_Struct( self, decNumber, self_ptr);				\
   Data_Get_Struct( rval,  decNumber, rval_ptr);				\
   result = rb_funcall( cDecNumber, rb_intern("new"), 0 );		\
   Data_Get_Struct(result,  decNumber, result_ptr)
@@ -27,11 +27,27 @@
 VALUE cDecNumber;
 VALUE cDecContext;
 
-static VALUE context_alloc(VALUE klass) {
+static VALUE con_alloc(VALUE klass) {
   decContext *self_ptr;
   VALUE self;
 
   self = Data_Make_Struct(klass, decContext, 0, free, self_ptr);
+  return self;
+}
+
+static VALUE con_initialize(int argc, VALUE *argv, VALUE self) {
+  decContext *self_ptr;
+  VALUE from;
+
+  rb_scan_args( argc, argv, "01", &from );
+
+  Data_Get_Struct(self, decContext, self_ptr);
+  decContextDefault(self_ptr, DEC_INIT_BASE);
+  (*self_ptr).traps = 0; // no traps TODO: error handling
+  (*self_ptr).digits = 34;
+
+  // TODO: Handle arguments
+
   return self;
 }
 
@@ -45,31 +61,25 @@ static VALUE num_alloc(VALUE klass) {
 
   (*self_ptr).bits = DECNAN;
 
-  //  num.digits = 0;
-  //  num.bits = DECNAN;
-  //  num.exponent = 0;
-  //  num.lsu = {0};
-
   return self;
 }
 
 static VALUE num_initialize(int argc, VALUE *argv, VALUE self) {
-  decNumber *dec_num_ptr;
-  decContext dec_context;
-  VALUE from, r_str;
+  decNumber *self_ptr;
+  decContext *context_ptr;
+  VALUE from, r_str, context;
 
   rb_scan_args( argc, argv, "01", &from );
-  decContextDefault(&dec_context, DEC_INIT_BASE); // TODO: wrap context 
-  dec_context.traps = 0; // no traps TODO: error handling
-  dec_context.digits = 34;
-
-  Data_Get_Struct(self, decNumber, dec_num_ptr);
+  context = rb_funcall( cDecContext, rb_intern("new"), 0 );
+  rb_iv_set( self, "@context", context );
+  Data_Get_Struct(context, decContext, context_ptr);
+  Data_Get_Struct(self, decNumber, self_ptr);
 
   if ( NIL_P(from) ) {
     //    decNumberFromString(dec_num_ptr, "0", &dec_context);
   } else {
     r_str = rb_funcall(from, rb_intern("to_s"), 0);
-    decNumberFromString(dec_num_ptr, StringValuePtr( r_str ), &dec_context);
+    decNumberFromString(self_ptr, StringValuePtr( r_str ), context_ptr);
   }
 
   return self;
@@ -270,15 +280,14 @@ static VALUE num_divide(VALUE self, VALUE rhs) {
 
 static VALUE num_divide(VALUE self, VALUE rval) {
   VALUE result;
-  decContext dec_context;
+  decContext *context_ptr;
   decNumber *self_ptr, *rval_ptr, *result_ptr;
-
-  dec_num_setup( result, self, rval, result_ptr, self_ptr, rval_ptr, dec_context );
+  dec_num_setup_rval( result, self, rval, result_ptr, self_ptr, rval_ptr, context_ptr );
 
   if ( decNumberIsZero(rval_ptr) ) {
     (*result_ptr).bits = DECNAN;
   } else {
-    decNumberDivide( result_ptr, self_ptr, rval_ptr, &dec_context);
+    decNumberDivide( result_ptr, self_ptr, rval_ptr, context_ptr);
   }
 
   return result;
@@ -286,16 +295,18 @@ static VALUE num_divide(VALUE self, VALUE rval) {
 
 static VALUE num_div(VALUE self, VALUE rval) {
   VALUE result;
-  decContext dec_context;
+  decContext *context_ptr;
   decNumber *self_ptr, *rval_ptr, *result_ptr;
+  dec_num_setup_rval( result, self, rval, result_ptr, self_ptr, rval_ptr, context_ptr );
 
-  dec_num_setup( result, self, rval, result_ptr, self_ptr, rval_ptr, dec_context );
-
-  decNumberDivideInteger( result_ptr, self_ptr, rval_ptr, &dec_context);
+  decNumberDivideInteger( result_ptr, self_ptr, rval_ptr, context_ptr);
   return result;
 }
 
 void Init_dec_number() {
+  cDecContext = rb_define_class("DecContext", rb_cObject);
+  rb_define_alloc_func(cDecContext, con_alloc);
+  rb_define_method(cDecContext, "initialize", con_initialize, -1);
   cDecNumber = rb_define_class("DecNumber", rb_cNumeric );
   rb_define_alloc_func(cDecNumber, num_alloc);
   rb_define_method(cDecNumber, "initialize", num_initialize, -1);
