@@ -1,0 +1,4 @@
+## -*-Ruby-*-
+source 'http://rubygems.org'
+gem 'mkmfmf'
+gem 'core-source'
