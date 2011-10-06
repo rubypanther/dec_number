@@ -131,9 +131,6 @@ static VALUE to_dec_number(VALUE obj) {
   Data_Get_Struct(dec_num, decNumber, dec_num_ptr);
 
   if ( decNumberIsNaN( dec_num_ptr ) ) {
-    //err = rb_funcall( rb_mKernel, rb_intern( "sprintf" ), 2, "invalid value for DecNumber: %s", rb_funcall( obj, rb_intern( "to_s" ), 0 ) );
-    //    err = rb_funcall( rb_mKernel, rb_intern( "sprintf" ), 2, rb_str_new2( "invalid value for DecNumber" ), obj );
-    //    rb_raise(rb_eArgError, StringValuePtr( err ) );
     decNumberZero( dec_num_ptr );
     ret = dec_num;
   } else {
@@ -201,54 +198,26 @@ static VALUE num_negate(VALUE self) {
 }
 
 // needs to check for things like nil and false, etc, not convert everything. Probably only convert numbers.
-static VALUE num_compare(VALUE self, VALUE rhs) {
-  VALUE ret, tmp_obj;
+static VALUE num_compare(VALUE self, VALUE rval) {
+  VALUE ret, result, tmp_obj;
   int32_t tmp_n, klass;
-  decContext dec_context;
-  decNumber *lhs_dec_num_ptr;
-  decNumber *rhs_dec_num_ptr;
-  decNumber *eql_dec_num_ptr;
-  
-  decContextDefault(&dec_context, DEC_INIT_BASE); // TODO: wrap context 
+  decContext *context_ptr;
+  decNumber *self_ptr, *rval_ptr, *result_ptr;
+
   ret = Qnil;
-
-  Data_Get_Struct(self, decNumber, lhs_dec_num_ptr);
-
-  /* This block needs to make sure rhs_dec_num_ptr is set up! */
-  /*
-  if ( FIXNUM_P( rhs ) ) {
-    Data_Make_Struct(cDecNumber, decNumber, 0, free, rhs_dec_num_ptr);
-    decNumberFromInt32(rhs_dec_num_ptr, FIX2INT( rhs ) );
-  } else if ( TYPE(rhs) == T_STRING ) {
-    Data_Make_Struct(cDecNumber, decNumber, 0, free, rhs_dec_num_ptr);
-    decNumberFromString(rhs_dec_num_ptr, StringValuePtr( rhs ), &dec_context);
-  } else if ( TYPE(rhs) == T_DATA ) { // TODO: Check for error on T_OBJECT etc
-    if ( rb_obj_is_kind_of( rhs, cDecNumber ) != Qtrue ) {
-      // convert
-      rhs = rb_funcall(rhs, rb_intern("to_dec_number"), 0 );
-    }
-    Data_Get_Struct(rhs, decNumber, rhs_dec_num_ptr);
-  } else if ( SYMBOL_P( rhs ) ) {
-    return Qnil; // Haters hate, it's what they do.
-  } else { // nil to 0
-    rhs = Data_Make_Struct(cDecNumber, decNumber, 0, free, rhs_dec_num_ptr);
-    decNumberZero( rhs_dec_num_ptr );
-  }
-  */
-
-  if ( !rb_obj_is_kind_of( rhs, cDecNumber ) ) {
-    rhs = rb_funcall(rhs, rb_intern("to_dec_number"), 0 );
-  } else if ( SYMBOL_P( rhs ) ) {
+  if ( SYMBOL_P( rval ) ) {
     return Qnil;
   }
-  Data_Get_Struct(rhs, decNumber, rhs_dec_num_ptr);
-  tmp_obj = rb_funcall( cDecNumber, rb_intern("new"), 1, rb_str_new2("0") );
-  Data_Get_Struct( tmp_obj, decNumber, eql_dec_num_ptr );
-  decNumberCompare(eql_dec_num_ptr, lhs_dec_num_ptr, rhs_dec_num_ptr, &dec_context);
-  if ( decNumberIsNaN( eql_dec_num_ptr ) ) {
+
+  dec_num_setup_rval( result, self, rval, result_ptr, self_ptr, rval_ptr, context_ptr );
+
+  decNumberCompare(result_ptr, self_ptr, rval_ptr, context_ptr);
+
+  if ( decNumberIsNaN( result_ptr ) ) {
     rb_raise(rb_eArgError, "FAIL: TODO: This error (should usually fail earlier)");
+    return Qnil;
   } else {
-    tmp_n = decNumberToInt32( eql_dec_num_ptr, &dec_context );
+    tmp_n = decNumberToInt32( result_ptr, context_ptr );
     ret = INT2FIX( tmp_n );
   }
 
