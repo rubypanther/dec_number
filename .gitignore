@@ -1,0 +1,15 @@
+.bundle
+tmp/
+*.o
+*.so
+*.la
+*.lo
+*.a
+.deps/
+.libs/
+config.h
+config.log
+config.status
+Makefile
+libtool
+stamp-h1
