@@ -1,4 +1,7 @@
 #!/usr/bin/env ruby -w
+#
+# This was an attempt to use mkmfmf and core-source but I failed. Thought I'd throw it in anyways.
+#
 require "rubygems"
 require 'mkmfmf'
 
