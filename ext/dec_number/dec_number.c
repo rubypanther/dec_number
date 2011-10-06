@@ -224,29 +224,6 @@ static VALUE num_compare(VALUE self, VALUE rval) {
   return ret;
 }
 
-/*
-static VALUE num_divide(VALUE self, VALUE rhs) {
-  VALUE result, arr;
-  decContext dec_context;
-  decNumber *lhs_dec_num_ptr, *rhs_dec_num_ptr, *result_dec_num_ptr;
-
-  decContextDefault(&dec_context, DEC_INIT_BASE); // TODO: wrap context 
-
-  if ( TYPE(self) == TYPE(rhs) ) {
-    Data_Get_Struct(self, decNumber, lhs_dec_num_ptr);
-    Data_Get_Struct(rhs,  decNumber, rhs_dec_num_ptr);
-    result = rb_funcall( cDecNumber, rb_intern("new"), 0 );
-    Data_Get_Struct(result,  decNumber, result_dec_num_ptr);
-    decNumberDivide( result_dec_num_ptr, lhs_dec_num_ptr, rhs_dec_num_ptr, &dec_context);
-  } else {
-    arr = rb_funcall( rhs, rb_intern("coerce"), 1, self );
-    result = num_div( rb_ary_entry(arr,0), rb_ary_entry(arr,1) );
-  }
-
-  return result;
-}
-*/
-
 static VALUE num_divide(VALUE self, VALUE rval) {
   VALUE result;
   decContext *context_ptr;
@@ -272,6 +249,26 @@ static VALUE num_div(VALUE self, VALUE rval) {
   return result;
 }
 
+static VALUE num_multiply(VALUE self, VALUE rval) {
+  VALUE result;
+  decContext *context_ptr;
+  decNumber *self_ptr, *rval_ptr, *result_ptr;
+  dec_num_setup_rval( result, self, rval, result_ptr, self_ptr, rval_ptr, context_ptr );
+
+  decNumberMultiply( result_ptr, self_ptr, rval_ptr, context_ptr);
+  return result;
+}
+
+static VALUE num_add(VALUE self, VALUE rval) {
+  VALUE result;
+  decContext *context_ptr;
+  decNumber *self_ptr, *rval_ptr, *result_ptr;
+  dec_num_setup_rval( result, self, rval, result_ptr, self_ptr, rval_ptr, context_ptr );
+
+  decNumberAdd( result_ptr, self_ptr, rval_ptr, context_ptr);
+  return result;
+}
+
 void Init_dec_number() {
   cDecContext = rb_define_class("DecContext", rb_cObject);
   rb_define_alloc_func(cDecContext, con_alloc);
@@ -285,6 +282,8 @@ void Init_dec_number() {
   rb_define_method(cDecNumber, "/", num_divide, 1);
   rb_define_method(cDecNumber, "coerce", num_coerce, 1);
   rb_define_method(cDecNumber, "div", num_div, 1);
+  rb_define_method(cDecNumber, "*", num_multiply, 1);
+  rb_define_method(cDecNumber, "+", num_add, 1);
   
   rb_define_method(rb_cObject, "DecNumber", dec_number_from_string, 1);
   rb_define_method(rb_cObject, "to_dec_number", to_dec_number, 0);
