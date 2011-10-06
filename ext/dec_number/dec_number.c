@@ -15,12 +15,6 @@
 # define DEBUGPRINT(_fmt, ...)  DEBUGPRINT2(WHERESTR _fmt, WHEREARG, __VA_ARGS__)
 #endif
 
-#define dec_num_setup( result, self, result_ptr, self_ptr, context_ptr ) \
-  Data_Get_Struct( rb_iv_get(self, "@context"), decContext, context_ptr);\
-  Data_Get_Struct( self, decNumber, self_ptr);				\
-  result = rb_funcall( cDecNumber, rb_intern("new"), 0 );		\
-  Data_Get_Struct(result,  decNumber, result_ptr)
-
 #define dec_num_setup_rval( result, self, rval, result_ptr, self_ptr, rval_ptr, context_ptr ) \
   Data_Get_Struct( rb_iv_get(self, "@context"), decContext, context_ptr);\
   rval = rb_funcall( rval, rb_intern("to_dec_number"), 0 );		\
@@ -275,16 +269,6 @@ static VALUE num_add(VALUE self, VALUE rval) {
   return result;
 }
 
-static VALUE num_abs(VALUE self) {
-  VALUE result;
-  decContext *context_ptr;
-  decNumber *self_ptr, *result_ptr;
-  dec_num_setup( result, self, result_ptr, self_ptr, context_ptr );
-
-  decNumberAbs( result_ptr, self_ptr, context_ptr);
-  return result;
-}
-
 void Init_dec_number() {
   cDecContext = rb_define_class("DecContext", rb_cObject);
   rb_define_alloc_func(cDecContext, con_alloc);
@@ -300,7 +284,6 @@ void Init_dec_number() {
   rb_define_method(cDecNumber, "div", num_div, 1);
   rb_define_method(cDecNumber, "*", num_multiply, 1);
   rb_define_method(cDecNumber, "+", num_add, 1);
-  rb_define_method(cDecNumber, "abs", num_abs, 0);
   
   rb_define_method(rb_cObject, "DecNumber", dec_number_from_string, 1);
   rb_define_method(rb_cObject, "to_dec_number", to_dec_number, 0);
