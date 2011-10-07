@@ -8,7 +8,7 @@
 # define RSTRING_PTR(x) (RSTRING(x)->ptr)
 #endif
 
-#if !defined(WHERESTR)
+#if !defined(DEBUGPRINT)
 # define WHERESTR  "[file %s, line %d]: "
 # define WHEREARG  __FILE__, __LINE__
 # define DEBUGPRINT2(...)       fprintf(stderr, __VA_ARGS__)
@@ -16,13 +16,13 @@
 #endif
 
 #define dec_num_setup( result, self, result_ptr, self_ptr, context_ptr ) \
-  Data_Get_Struct( rb_iv_get(self, "@context"), decContext, context_ptr);\
+  Data_Get_Struct( rb_iv_get(self, "@context"), decContext, context_ptr); \
   Data_Get_Struct( self, decNumber, self_ptr);				\
   result = rb_funcall( cDecNumber, rb_intern("new"), 0 );		\
   Data_Get_Struct(result,  decNumber, result_ptr)
 
 #define dec_num_setup_rval( result, self, rval, result_ptr, self_ptr, rval_ptr, context_ptr ) \
-  Data_Get_Struct( rb_iv_get(self, "@context"), decContext, context_ptr);\
+  Data_Get_Struct( rb_iv_get(self, "@context"), decContext, context_ptr); \
   rval = rb_funcall( rval, rb_intern("to_dec_number"), 0 );		\
   Data_Get_Struct( self, decNumber, self_ptr);				\
   Data_Get_Struct( rval,  decNumber, rval_ptr);				\
