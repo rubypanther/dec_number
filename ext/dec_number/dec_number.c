@@ -275,6 +275,16 @@ static VALUE num_add(VALUE self, VALUE rval) {
   return result;
 }
 
+static VALUE num_subtract(VALUE self, VALUE rval) {
+  VALUE result;
+  decContext *context_ptr;
+  decNumber *self_ptr, *rval_ptr, *result_ptr;
+  dec_num_setup_rval( result, self, rval, result_ptr, self_ptr, rval_ptr, context_ptr );
+
+  decNumberSubtract( result_ptr, self_ptr, rval_ptr, context_ptr);
+  return result;
+}
+
 static VALUE num_abs(VALUE self) {
   VALUE result;
   decContext *context_ptr;
@@ -283,6 +293,45 @@ static VALUE num_abs(VALUE self) {
 
   decNumberAbs( result_ptr, self_ptr, context_ptr);
   return result;
+}
+
+static VALUE num_ceil(VALUE self) {
+  VALUE result;
+  decContext *context_ptr;
+  decNumber *self_ptr, *result_ptr;
+  dec_num_setup( result, self, result_ptr, self_ptr, context_ptr );
+
+  (*context_ptr).round = DEC_ROUND_UP;
+  
+  decNumberToIntegralValue( result_ptr, self_ptr, context_ptr);
+  return result;
+}
+
+static VALUE num_floor(VALUE self) {
+  VALUE result;
+  decContext *context_ptr;
+  decNumber *self_ptr, *result_ptr;
+  dec_num_setup( result, self, result_ptr, self_ptr, context_ptr );
+
+  (*context_ptr).round = DEC_ROUND_DOWN;
+  
+  decNumberToIntegralValue( result_ptr, self_ptr, context_ptr);
+  return result;
+}
+
+static VALUE num_divmod(VALUE self, VALUE rval) {
+  VALUE result_int, result_rem, result_ary;
+  decContext *context_ptr;
+  decNumber *self_ptr, *rval_ptr, *result_int_ptr, *result_rem_ptr;
+  dec_num_setup_rval( result_int, self, rval, result_int_ptr, self_ptr, rval_ptr, context_ptr );
+  result_rem = rb_funcall( cDecNumber, rb_intern("new"), 0 );		\
+  Data_Get_Struct(result_rem,  decNumber, result_rem_ptr);
+
+  // There might be a more efficient way to get these
+  decNumberDivideInteger( result_int_ptr, self_ptr, rval_ptr, context_ptr );
+  decNumberRemainder( result_rem_ptr, self_ptr, result_int_ptr, context_ptr);
+  result_ary = rb_ary_new3( 2, result_int, result_rem );
+  return result_ary;
 }
 
 void Init_dec_number() {
@@ -300,7 +349,11 @@ void Init_dec_number() {
   rb_define_method(cDecNumber, "div", num_div, 1);
   rb_define_method(cDecNumber, "*", num_multiply, 1);
   rb_define_method(cDecNumber, "+", num_add, 1);
+  rb_define_method(cDecNumber, "-", num_subtract, 1);
   rb_define_method(cDecNumber, "abs", num_abs, 0);
+  rb_define_method(cDecNumber, "ceil", num_ceil, 0);
+  rb_define_method(cDecNumber, "floor", num_floor, 0);
+  rb_define_method(cDecNumber, "divmod", num_divmod, 1);
   
   rb_define_method(rb_cObject, "DecNumber", dec_number_from_string, 1);
   rb_define_method(rb_cObject, "to_dec_number", to_dec_number, 0);
