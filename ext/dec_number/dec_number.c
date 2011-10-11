@@ -171,7 +171,7 @@ static VALUE num_coerce( VALUE self, VALUE rhs ) {
   return result_arr;
 }
 
-static VALUE dec_number_to_string(VALUE self) {
+static VALUE num_to_s(VALUE self) {
   decNumber *dec_num_ptr;
   VALUE str;
   char c_str[DECNUMDIGITS+14];
@@ -181,6 +181,12 @@ static VALUE dec_number_to_string(VALUE self) {
   decNumberToString( dec_num_ptr, c_str );
   str = rb_str_new2(c_str);
   return str;
+}
+
+static VALUE num_to_f(VALUE self) {
+  VALUE result;
+  result = rb_funcall(num_to_s(self), rb_intern("to_f"), 0);
+  return result;
 }
 
 static VALUE num_zero(VALUE self) {
@@ -392,7 +398,8 @@ void Init_dec_number() {
   cDecNumber = rb_define_class("DecNumber", rb_cNumeric );
   rb_define_alloc_func(cDecNumber, num_alloc);
   rb_define_method(cDecNumber, "initialize", num_initialize, -1);
-  rb_define_method(cDecNumber, "to_s", dec_number_to_string, 0);
+  rb_define_method(cDecNumber, "to_s", num_to_s, 0);
+  rb_define_method(cDecNumber, "to_f", num_to_f, 0);
   rb_define_method(cDecNumber, "-@", num_negate, 0);
   rb_define_method(cDecNumber, "<=>", num_compare, 1);
   rb_define_method(cDecNumber, "/", num_divide, 1);
