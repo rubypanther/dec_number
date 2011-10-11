@@ -37,6 +37,15 @@ VALUE cDecContext;
   result = rb_funcall( cDecNumber, rb_intern("new"), 0 );		\
   Data_Get_Struct(result,  decNumber, result_ptr)
 
+#define dec_num_setup_rval_with_new_context( result, self, rval, result_ptr, self_ptr, rval_ptr, context, context_ptr ) \
+  context = rb_funcall( cDecContext, rb_intern("new"), 0 );		\
+  Data_Get_Struct( context, decContext, context_ptr);			\
+  rval = rb_funcall( rval, rb_intern("to_dec_number"), 0 );		\
+  Data_Get_Struct( self, decNumber, self_ptr);				\
+  Data_Get_Struct( rval,  decNumber, rval_ptr);				\
+  result = rb_funcall( cDecNumber, rb_intern("new"), 0 );		\
+  Data_Get_Struct(result,  decNumber, result_ptr)
+
 static VALUE con_alloc(VALUE klass) {
   decContext *self_ptr;
   VALUE self;
@@ -174,13 +183,23 @@ static VALUE dec_number_to_string(VALUE self) {
   return str;
 }
 
-static VALUE num_zero_q(VALUE self) {
+static VALUE num_zero(VALUE self) {
   decNumber *dec_num_ptr;
   Data_Get_Struct(self, decNumber, dec_num_ptr);
-  if ( decNumberIsZero( dec_num_ptr ) == 1 ) {
+  if ( decNumberIsZero( dec_num_ptr ) ) {
     return Qtrue;
   } else {
     return Qfalse;
+  }
+}
+
+static VALUE num_nonzero(VALUE self) {
+  decNumber *dec_num_ptr;
+  Data_Get_Struct(self, decNumber, dec_num_ptr);
+  if ( decNumberIsZero( dec_num_ptr ) ) {
+    return Qfalse;
+  } else {
+    return Qtrue;
   }
 }
 
@@ -354,6 +373,18 @@ static VALUE num_eql(VALUE self, VALUE rval) {
   }
 }
 
+static VALUE num_modulo(VALUE self, VALUE rval) {
+  VALUE result, context;
+  decContext *context_ptr;
+  decNumber *self_ptr, *rval_ptr, *result_ptr;
+  dec_num_setup_rval_with_new_context( result, self, rval, result_ptr, self_ptr, rval_ptr, context, context_ptr );
+
+  context_ptr->round = DEC_ROUND_DOWN;
+
+  decNumberRemainder( result_ptr, self_ptr, rval_ptr, context_ptr);
+  return result;
+}
+
 void Init_dec_number() {
   cDecContext = rb_define_class("DecContext", rb_cObject);
   rb_define_alloc_func(cDecContext, con_alloc);
@@ -375,6 +406,10 @@ void Init_dec_number() {
   rb_define_method(cDecNumber, "floor", num_floor, 0);
   rb_define_method(cDecNumber, "divmod", num_divmod, 1);
   rb_define_method(cDecNumber, "eql?", num_eql, 1);
+  rb_define_method(cDecNumber, "%", num_modulo, 1);
+  rb_define_alias(cDecNumber,"modulo", "%");
+  rb_define_method(cDecNumber, "zero?", num_zero, 0);
+  rb_define_method(cDecNumber, "nonzero?", num_nonzero, 0);
   
   rb_define_method(rb_cObject, "DecNumber", dec_number_from_string, 1);
   rb_define_method(rb_cObject, "to_dec_number", to_dec_number, 0);
