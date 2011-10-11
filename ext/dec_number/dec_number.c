@@ -184,9 +184,7 @@ static VALUE num_to_s(VALUE self) {
 }
 
 static VALUE num_to_f(VALUE self) {
-  VALUE result;
-  result = rb_funcall(num_to_s(self), rb_intern("to_f"), 0);
-  return result;
+  return rb_funcall(num_to_s(self), rb_intern("to_f"), 0);
 }
 
 static VALUE num_zero(VALUE self) {
@@ -391,6 +389,16 @@ static VALUE num_modulo(VALUE self, VALUE rval) {
   return result;
 }
 
+static VALUE num_round(VALUE self) {
+  VALUE result;
+  decContext *context_ptr;
+  decNumber *self_ptr, *result_ptr;
+  dec_num_setup( result, self, result_ptr, self_ptr, context_ptr );
+
+  decNumberToIntegralValue( result_ptr, self_ptr, context_ptr);
+  return result;
+}
+
 void Init_dec_number() {
   cDecContext = rb_define_class("DecContext", rb_cObject);
   rb_define_alloc_func(cDecContext, con_alloc);
@@ -418,6 +426,7 @@ void Init_dec_number() {
   rb_define_alias( cDecNumber, "modulo", "%");
   rb_define_method(cDecNumber, "zero?", num_zero, 0);
   rb_define_method(cDecNumber, "nonzero?", num_nonzero, 0);
+  rb_define_method(cDecNumber, "round", num_round, 0);
 
   rb_define_method(rb_cObject, "DecNumber", dec_number_from_string, 1);
   rb_define_method(rb_cObject, "to_dec_number", to_dec_number, 0);
