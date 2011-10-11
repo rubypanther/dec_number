@@ -1,3 +1,5 @@
+WARNING! Pre-release, not finished.
+
 DecNumber is a wrapper around ICU-decNumber (Copyright (c) IBM Corporation)
 that subclasses Numeric.
 
