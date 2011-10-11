@@ -396,6 +396,7 @@ void Init_dec_number() {
   rb_define_method(cDecNumber, "-@", num_negate, 0);
   rb_define_method(cDecNumber, "<=>", num_compare, 1);
   rb_define_method(cDecNumber, "/", num_divide, 1);
+  rb_define_alias( cDecNumber, "quo", "/");
   rb_define_method(cDecNumber, "coerce", num_coerce, 1);
   rb_define_method(cDecNumber, "div", num_div, 1);
   rb_define_method(cDecNumber, "*", num_multiply, 1);
@@ -407,10 +408,10 @@ void Init_dec_number() {
   rb_define_method(cDecNumber, "divmod", num_divmod, 1);
   rb_define_method(cDecNumber, "eql?", num_eql, 1);
   rb_define_method(cDecNumber, "%", num_modulo, 1);
-  rb_define_alias(cDecNumber,"modulo", "%");
+  rb_define_alias( cDecNumber, "modulo", "%");
   rb_define_method(cDecNumber, "zero?", num_zero, 0);
   rb_define_method(cDecNumber, "nonzero?", num_nonzero, 0);
-  
+
   rb_define_method(rb_cObject, "DecNumber", dec_number_from_string, 1);
   rb_define_method(rb_cObject, "to_dec_number", to_dec_number, 0);
   //  rb_funcall(rb_mKernel,rb_intern("puts"), 1, rb_str_new2("DecNumber loaded"));
