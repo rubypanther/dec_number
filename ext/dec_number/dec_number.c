@@ -24,6 +24,13 @@ VALUE cDecContext;
   result = rb_funcall( cDecNumber, rb_intern("new"), 0 );		\
   Data_Get_Struct(result,  decNumber, result_ptr)
 
+#define dec_num_setup_with_new_context( result, self, result_ptr, self_ptr, context, context_ptr ) \
+  context = rb_funcall( cDecContext, rb_intern("new"), 0 );		\
+  Data_Get_Struct( context, decContext, context_ptr);			\
+  Data_Get_Struct( self, decNumber, self_ptr);				\
+  result = rb_funcall( cDecNumber, rb_intern("new"), 0 );		\
+  Data_Get_Struct(result,  decNumber, result_ptr)
+
 #define dec_num_setup_without_context( result, self, result_ptr, self_ptr ) \
   Data_Get_Struct( self, decNumber, self_ptr);				\
   result = rb_funcall( cDecNumber, rb_intern("new"), 0 );		\
@@ -181,6 +188,20 @@ static VALUE num_to_s(VALUE self) {
   decNumberToString( dec_num_ptr, c_str );
   str = rb_str_new2(c_str);
   return str;
+}
+
+static VALUE num_to_i(VALUE self) {
+  VALUE result, context;
+  decContext *context_ptr;
+  decNumber *self_ptr, *result_ptr;
+  int32_t c_int;
+  dec_num_setup_with_new_context( result, self, result_ptr, self_ptr, context, context_ptr );
+
+  context_ptr->round = DEC_ROUND_DOWN;
+  decNumberToIntegralValue( result_ptr, self_ptr, context_ptr);
+  c_int = decNumberToInt32( result_ptr, context_ptr );
+
+  return INT2NUM(c_int);
 }
 
 static VALUE num_to_f(VALUE self) {
@@ -407,6 +428,7 @@ void Init_dec_number() {
   rb_define_alloc_func(cDecNumber, num_alloc);
   rb_define_method(cDecNumber, "initialize", num_initialize, -1);
   rb_define_method(cDecNumber, "to_s", num_to_s, 0);
+  rb_define_method(cDecNumber, "to_i", num_to_i, 0);
   rb_define_method(cDecNumber, "to_f", num_to_f, 0);
   rb_define_method(cDecNumber, "-@", num_negate, 0);
   rb_define_method(cDecNumber, "<=>", num_compare, 1);
