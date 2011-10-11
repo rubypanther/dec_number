@@ -307,7 +307,7 @@ static VALUE num_ceil(VALUE self) {
   context = rb_funcall( cDecContext, rb_intern("new"), 0 );
   Data_Get_Struct( context, decContext, context_ptr); \
 
-  (*context_ptr).round = DEC_ROUND_UP;
+  (*context_ptr).round = DEC_ROUND_CEILING;
   
   decNumberToIntegralValue( result_ptr, self_ptr, context_ptr);
   return result;
@@ -321,7 +321,7 @@ static VALUE num_floor(VALUE self) {
   context = rb_funcall( cDecContext, rb_intern("new"), 0 );
   Data_Get_Struct( context, decContext, context_ptr); \
 
-  (*context_ptr).round = DEC_ROUND_DOWN;
+  (*context_ptr).round = DEC_ROUND_FLOOR;
   
   decNumberToIntegralValue( result_ptr, self_ptr, context_ptr);
   return result;
