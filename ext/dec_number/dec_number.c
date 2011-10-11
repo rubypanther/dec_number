@@ -346,11 +346,8 @@ static VALUE num_eql(VALUE self, VALUE rval) {
   VALUE result;
   decContext *context_ptr;
   decNumber *self_ptr, *rval_ptr, *result_ptr;
-  if ( !rb_obj_is_kind_of( rval, cDecNumber ) ) {
-    return Qfalse;
-  }
 
-  if ( FIX2INT( num_compare( self, rval ) ) == 0 ) {
+  if ( rb_obj_is_kind_of( rval, cDecNumber ) && FIX2INT( num_compare( self, rval ) ) == 0 ) {
     return Qtrue;
   } else {
     return Qfalse;
