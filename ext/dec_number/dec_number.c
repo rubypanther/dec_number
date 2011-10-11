@@ -15,6 +15,9 @@
 # define DEBUGPRINT(_fmt, ...)  DEBUGPRINT2(WHERESTR _fmt, WHEREARG, __VA_ARGS__)
 #endif
 
+VALUE cDecNumber;
+VALUE cDecContext;
+
 #define dec_num_setup( result, self, result_ptr, self_ptr, context_ptr ) \
   Data_Get_Struct( rb_iv_get(self, "@context"), decContext, context_ptr); \
   Data_Get_Struct( self, decNumber, self_ptr);				\
@@ -33,10 +36,6 @@
   Data_Get_Struct( rval,  decNumber, rval_ptr);				\
   result = rb_funcall( cDecNumber, rb_intern("new"), 0 );		\
   Data_Get_Struct(result,  decNumber, result_ptr)
-
-
-VALUE cDecNumber;
-VALUE cDecContext;
 
 static VALUE con_alloc(VALUE klass) {
   decContext *self_ptr;
@@ -343,6 +342,21 @@ static VALUE num_divmod(VALUE self, VALUE rval) {
   return result_ary;
 }
 
+static VALUE num_eql(VALUE self, VALUE rval) {
+  VALUE result;
+  decContext *context_ptr;
+  decNumber *self_ptr, *rval_ptr, *result_ptr;
+  if ( !rb_obj_is_kind_of( rval, cDecNumber ) ) {
+    return Qfalse;
+  }
+
+  if ( FIX2INT( num_compare( self, rval ) ) == 0 ) {
+    return Qtrue;
+  } else {
+    return Qfalse;
+  }
+}
+
 void Init_dec_number() {
   cDecContext = rb_define_class("DecContext", rb_cObject);
   rb_define_alloc_func(cDecContext, con_alloc);
@@ -363,6 +377,7 @@ void Init_dec_number() {
   rb_define_method(cDecNumber, "ceil", num_ceil, 0);
   rb_define_method(cDecNumber, "floor", num_floor, 0);
   rb_define_method(cDecNumber, "divmod", num_divmod, 1);
+  rb_define_method(cDecNumber, "eql?", num_eql, 1);
   
   rb_define_method(rb_cObject, "DecNumber", dec_number_from_string, 1);
   rb_define_method(rb_cObject, "to_dec_number", to_dec_number, 0);
