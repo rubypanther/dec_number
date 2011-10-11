@@ -21,6 +21,11 @@
   result = rb_funcall( cDecNumber, rb_intern("new"), 0 );		\
   Data_Get_Struct(result,  decNumber, result_ptr)
 
+#define dec_num_setup_without_context( result, self, result_ptr, self_ptr ) \
+  Data_Get_Struct( self, decNumber, self_ptr);				\
+  result = rb_funcall( cDecNumber, rb_intern("new"), 0 );		\
+  Data_Get_Struct(result,  decNumber, result_ptr)
+
 #define dec_num_setup_rval( result, self, rval, result_ptr, self_ptr, rval_ptr, context_ptr ) \
   Data_Get_Struct( rb_iv_get(self, "@context"), decContext, context_ptr); \
   rval = rb_funcall( rval, rb_intern("to_dec_number"), 0 );		\
@@ -296,10 +301,12 @@ static VALUE num_abs(VALUE self) {
 }
 
 static VALUE num_ceil(VALUE self) {
-  VALUE result;
+  VALUE result, context;
   decContext *context_ptr;
   decNumber *self_ptr, *result_ptr;
-  dec_num_setup( result, self, result_ptr, self_ptr, context_ptr );
+  dec_num_setup_without_context( result, self, result_ptr, self_ptr );
+  context = rb_funcall( cDecContext, rb_intern("new"), 0 );
+  Data_Get_Struct( context, decContext, context_ptr); \
 
   (*context_ptr).round = DEC_ROUND_UP;
   
@@ -308,10 +315,12 @@ static VALUE num_ceil(VALUE self) {
 }
 
 static VALUE num_floor(VALUE self) {
-  VALUE result;
+  VALUE result, context;
   decContext *context_ptr;
   decNumber *self_ptr, *result_ptr;
-  dec_num_setup( result, self, result_ptr, self_ptr, context_ptr );
+  dec_num_setup_without_context( result, self, result_ptr, self_ptr );
+  context = rb_funcall( cDecContext, rb_intern("new"), 0 );
+  Data_Get_Struct( context, decContext, context_ptr); \
 
   (*context_ptr).round = DEC_ROUND_DOWN;
   
