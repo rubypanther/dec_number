@@ -12,3 +12,9 @@ Another example is a database with Decimal columns with differing precision and 
 Another use case would be bitcoin, where you need an arbitrary precision, mixed with dollars.
 
 I don't expect to instantiate these object directly, instead I will bind them to SQL Decimal in an ORM, or using some sort of Money class.
+
+If you'd like to help out, please write tests!
+
+Currently they are not very good citizens of the Numeric family and try to give you back DecNumber objects whenever used. This is intentional. It might be a better idea in a Money class than returned from a db, however.
+
+TODO: Most of the methods should accept a context as an argument. Currently the context is attached to the receiver.
