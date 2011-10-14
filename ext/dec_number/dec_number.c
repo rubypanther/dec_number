@@ -54,9 +54,9 @@ VALUE cDecContext;
   Data_Get_Struct(result,  decNumber, result_ptr)
 
 static VALUE con_alloc(VALUE klass) {
-  decContext *self_ptr;
+  decContext self_struct, *self_ptr;
   VALUE self;
-
+  self_ptr = &self_struct;
   self = Data_Make_Struct(klass, decContext, 0, free, self_ptr);
   return self;
 }
@@ -64,13 +64,12 @@ static VALUE con_alloc(VALUE klass) {
 static VALUE con_initialize(int argc, VALUE *argv, VALUE self) {
   decContext *self_ptr;
   VALUE from;
-
   rb_scan_args( argc, argv, "01", &from );
 
   Data_Get_Struct(self, decContext, self_ptr);
   decContextDefault(self_ptr, DEC_INIT_BASE);
-  (*self_ptr).traps = 0; // no traps TODO: error handling
-  (*self_ptr).digits = 34;
+  self_ptr->traps = 0; // no traps TODO: error handling
+  //  self_ptr->digits = 34; // WTF
 
   // TODO: Handle arguments
 
@@ -78,15 +77,14 @@ static VALUE con_initialize(int argc, VALUE *argv, VALUE self) {
 }
 
 static VALUE num_alloc(VALUE klass) {
-  decNumber *self_ptr;
+  decNumber self_struct, *self_ptr;
   decContext context;
   VALUE self;
-
+  self_ptr = &self_struct;
   self = Data_Make_Struct(klass, decNumber, 0, free, self_ptr);
   decContextDefault(&context, DEC_INIT_BASE);
 
   (*self_ptr).bits = DECNAN;
-
   return self;
 }
 
@@ -289,7 +287,6 @@ static VALUE num_divide(VALUE self, VALUE rval) {
   } else {
     decNumberDivide( result_ptr, self_ptr, rval_ptr, context_ptr);
   }
-
   return result;
 }
 
