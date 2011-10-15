@@ -417,6 +417,16 @@ static VALUE num_round(VALUE self) {
   return result;
 }
 
+static VALUE num_power(VALUE self, VALUE rval) {
+  VALUE result;
+  decContext *context_ptr;
+  decNumber *self_ptr, *rval_ptr, *result_ptr;
+  dec_num_setup_rval( result, self, rval, result_ptr, self_ptr, rval_ptr, context_ptr );
+
+  decNumberPower( result_ptr, self_ptr, rval_ptr, context_ptr);
+  return result;
+}
+
 void Init_dec_number() {
   cDecContext = rb_define_class("DecContext", rb_cObject);
   rb_define_alloc_func(cDecContext, con_alloc);
@@ -446,6 +456,7 @@ void Init_dec_number() {
   rb_define_method(cDecNumber, "zero?", num_zero, 0);
   rb_define_method(cDecNumber, "nonzero?", num_nonzero, 0);
   rb_define_method(cDecNumber, "round", num_round, 0);
+  rb_define_method(cDecNumber, "**", num_power, 1);
 
   rb_define_method(rb_cObject, "DecNumber", dec_number_from_string, 1);
   rb_define_method(rb_cObject, "to_dec_number", to_dec_number, 0);
