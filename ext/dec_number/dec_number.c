@@ -123,14 +123,15 @@ static VALUE dec_number_from_struct(decNumber source_dec_num) {
 
 static VALUE dec_number_from_string(VALUE obj, VALUE from) {
   decNumber *dec_num_ptr;
-  VALUE new, ret, err;
-
+  VALUE new, ret, err, r_str;
   ret = Qnil;
   new = rb_funcall( cDecNumber, rb_intern("new"), 1, from );
-  Data_Get_Struct(new, decNumber, dec_num_ptr);
 
+  Data_Get_Struct(new, decNumber, dec_num_ptr);
   if ( decNumberIsNaN( dec_num_ptr ) ) {
-    err = rb_funcall( rb_cObject, rb_intern( "sprintf" ), 2, "invalid value for DecNumber: %s", from );
+    // FIXME: Just use the sprintf from C, silly
+    r_str = rb_funcall( from, rb_intern( "to_s" ), 0 );
+    err = rb_funcall( rb_mKernel, rb_intern( "sprintf" ), 2, rb_str_new2("invalid value for DecNumber: %s"), r_str );
     rb_raise(rb_eArgError, StringValuePtr( err ) );
   } else {
     ret = new;
