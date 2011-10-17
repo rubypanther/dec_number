@@ -411,15 +411,20 @@ static VALUE num_modulo(VALUE self, VALUE rval) {
 static VALUE num_round(int argc, VALUE *argv, VALUE self) {
   VALUE result, rval;
   decContext *context_ptr;
-  decNumber *self_ptr, *result_ptr;
-  dec_num_setup( result, self, result_ptr, self_ptr, context_ptr );
-
+  decNumber *self_ptr, *result_ptr, *rval_ptr;
   rb_scan_args( argc, argv, "01", &rval );
-  if ( !NIL_P( rval ) ) {
-    context_ptr->digits = NUM2INT( rb_funcall( rval, rb_intern("to_i"), 0 ) );
+  if ( NIL_P( rval ) ) {
+    rval = INT2FIX( 0 );
+  } else { // probably not necessary
+    if ( ! rb_obj_is_kind_of( rval, cDecNumber ) ) {
+      rval = rb_funcall( rval, rb_intern("to_i"), 0 );
+    }
   }
 
-  decNumberToIntegralValue( result_ptr, self_ptr, context_ptr);
+  dec_num_setup_rval( result, self, rval, result_ptr, self_ptr, rval_ptr, context_ptr );
+
+  decNumberMinus( rval_ptr, rval_ptr, context_ptr);
+  decNumberRescale( result_ptr, self_ptr, rval_ptr, context_ptr);
   return result;
 }
 
