@@ -235,7 +235,7 @@ static VALUE num_negate(VALUE self) {
   new = rb_funcall( cDecNumber, rb_intern("new"), 0 );
   Data_Get_Struct(self, decNumber, dec_num_ptr);
   if ( decNumberIsNaN( dec_num_ptr ) ) {
-    rb_raise(rb_eTypeError, "can't negate that" );
+    rb_raise(rb_eTypeError, "can't negate a NaN" );
     return Qnil;
   }
 
