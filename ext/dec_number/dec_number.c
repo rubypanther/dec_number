@@ -447,6 +447,7 @@ void Init_dec_number() {
   rb_define_method(cDecNumber, "<=>", num_compare, 1);
   rb_define_method(cDecNumber, "/", num_divide, 1);
   rb_define_alias( cDecNumber, "quo", "/");
+  rb_define_alias( cDecNumber, "fdiv", "quo");
   rb_define_method(cDecNumber, "coerce", num_coerce, 1);
   rb_define_method(cDecNumber, "div", num_div, 1);
   rb_define_method(cDecNumber, "*", num_multiply, 1);
