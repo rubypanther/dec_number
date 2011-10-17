@@ -408,11 +408,16 @@ static VALUE num_modulo(VALUE self, VALUE rval) {
   return result;
 }
 
-static VALUE num_round(VALUE self) {
-  VALUE result;
+static VALUE num_round(int argc, VALUE *argv, VALUE self) {
+  VALUE result, rval;
   decContext *context_ptr;
   decNumber *self_ptr, *result_ptr;
   dec_num_setup( result, self, result_ptr, self_ptr, context_ptr );
+
+  rb_scan_args( argc, argv, "01", &rval );
+  if ( !NIL_P( rval ) ) {
+    context_ptr->digits = NUM2INT( rb_funcall( rval, rb_intern("to_i"), 0 ) );
+  }
 
   decNumberToIntegralValue( result_ptr, self_ptr, context_ptr);
   return result;
@@ -456,7 +461,7 @@ void Init_dec_number() {
   rb_define_alias( cDecNumber, "modulo", "%");
   rb_define_method(cDecNumber, "zero?", num_zero, 0);
   rb_define_method(cDecNumber, "nonzero?", num_nonzero, 0);
-  rb_define_method(cDecNumber, "round", num_round, 0);
+  rb_define_method(cDecNumber, "round", num_round, -1);
   rb_define_method(cDecNumber, "**", num_power, 1);
 
   rb_define_method(rb_cObject, "DecNumber", dec_number_from_string, 1);
