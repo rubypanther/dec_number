@@ -9,5 +9,5 @@ Gem::Specification.new do |s| # -*-ruby-*-
   s.extensions << 'ext/dec_number/extconf.rb'
   s.rubyforge_project = "dec-number"
   s.files = Dir['**/**']
+  s.test_files  = Dir.glob("test/**/*.rb")
 end
-
