@@ -1,6 +1,6 @@
 Gem::Specification.new do |s| # -*-ruby-*-
   s.name        = "dec_number"
-  s.version     = '0.1.1'
+  s.version     = '0.1.2'
   s.authors     = ["Paris Sinclair"]
   s.email       = ["paris@rubypanther.com"]
   s.summary     = "ICU-decNumber wrapper for arbitrary precision math with context objects"
