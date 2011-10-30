@@ -13,7 +13,7 @@ if RUBY_VERSION >= "1.9"
     installer.install 'ruby_core_source'
 
     Gem.refresh
-    Gem::Specification.activate('ruby_core_source') # for 1.9.1
+    Gem::Specification.find_by_name('ruby_core_source').activate # for 1.9.1
 
     require "ruby_core_source"
   end
