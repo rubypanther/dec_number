@@ -228,6 +228,16 @@ static VALUE num_nonzero(VALUE self) {
   }
 }
 
+static VALUE num_negative(VALUE self) {
+  decNumber *dec_num_ptr;
+  Data_Get_Struct(self, decNumber, dec_num_ptr);
+  if ( decNumberIsNegative( dec_num_ptr ) ) {
+    return Qtrue;
+  } else {
+    return Qfalse;
+  }
+}
+
 static VALUE num_negate(VALUE self) {
   decNumber *dec_num_ptr;
   decNumber *new_dec_num_ptr;
@@ -470,7 +480,7 @@ void Init_dec_number() {
   rb_define_method(cDecNumber, "nonzero?", num_nonzero, 0);
   rb_define_method(cDecNumber, "round", num_round, -1);
   rb_define_method(cDecNumber, "**", num_power, 1);
-
+  rb_define_method(cDecNumber, "negative?", num_negative, 0);
   rb_define_method(rb_cObject, "DecNumber", dec_number_from_string, 1);
   rb_define_method(rb_cObject, "to_dec_number", to_dec_number, 0);
   //  rb_funcall(rb_mKernel,rb_intern("puts"), 1, rb_str_new2("DecNumber loaded"));
