@@ -106,7 +106,6 @@ static VALUE num_initialize(int argc, VALUE *argv, VALUE self) {
     r_str = rb_funcall(from, rb_intern("to_s"), 0);
     decNumberFromString(self_ptr, StringValuePtr( r_str ), context_ptr);
   }
-
   return self;
 }
 
@@ -168,13 +167,12 @@ static VALUE to_dec_number(VALUE obj) {
 
 static VALUE num_coerce( VALUE self, VALUE rhs ) {
   VALUE result_arr;
-  if ( TYPE(rhs) != TYPE(self) ) {
+  if ( rb_obj_classname(rhs) != rb_obj_classname(self) ) {
     rhs = rb_funcall( rhs, rb_intern("to_dec_number"), 0 );
   }
   result_arr = rb_ary_new2(2);
   rb_ary_store( result_arr, 0, rhs);
   rb_ary_store( result_arr, 1, self);
-
   return result_arr;
 }
 
@@ -483,5 +481,4 @@ void Init_dec_number() {
   rb_define_method(cDecNumber, "negative?", num_negative, 0);
   rb_define_method(rb_cObject, "DecNumber", dec_number_from_string, 1);
   rb_define_method(rb_cObject, "to_dec_number", to_dec_number, 0);
-  //  rb_funcall(rb_mKernel,rb_intern("puts"), 1, rb_str_new2("DecNumber loaded"));
 }
