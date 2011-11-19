@@ -80,9 +80,32 @@ static VALUE con_initialize(int argc, VALUE *argv, VALUE self) {
 static VALUE con_get_rounding(VALUE self) {
   decContext *self_ptr;
   enum rounding round;
+  VALUE name_sym, rounding_names;
   Data_Get_Struct(self, decContext, self_ptr);
   round = decContextGetRounding(self_ptr);
-  return INT2FIX(round);
+  rounding_names = rb_const_get( cDecContext, rb_intern("ROUNDING_NAMES") );
+  name_sym = rb_hash_aref( rounding_names, INT2FIX(round) );
+  return name_sym;
+}
+
+static VALUE con_set_rounding(VALUE self, VALUE new_rounding) {
+  decContext *self_ptr;
+  enum rounding round;
+  VALUE rounding_numbers;
+
+  Data_Get_Struct(self, decContext, self_ptr);
+
+  if ( SYMBOL_P( new_rounding ) ) {
+    rounding_numbers = rb_const_get( cDecContext, rb_intern("ROUNDING_NUMBERS") );
+    new_rounding = rb_hash_aref( rounding_numbers, new_rounding );
+  }
+  if( ! FIXNUM_P( new_rounding ) ) {
+    rb_raise(rb_eTypeError, "wrong argument type");
+  }
+
+  round = FIX2INT(new_rounding);
+  decContextSetRounding(self_ptr,round);
+  return new_rounding;
 }
 
 static VALUE num_alloc(VALUE klass) {
@@ -504,7 +527,7 @@ void Init_dec_number() {
   rb_define_alloc_func(cDecContext, con_alloc);
   rb_define_method(cDecContext, "initialize", con_initialize, -1);
   rb_define_method(cDecContext, "rounding", con_get_rounding, 0);
-
+  rb_define_method(cDecContext, "rounding=", con_set_rounding, 1);
   /****
        DecNumber
    ****/
