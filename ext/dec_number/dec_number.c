@@ -77,6 +77,14 @@ static VALUE con_initialize(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
+static VALUE con_get_rounding(VALUE self) {
+  decContext *self_ptr;
+  enum rounding round;
+  Data_Get_Struct(self, decContext, self_ptr);
+  round = decContextGetRounding(self_ptr);
+  return INT2FIX(round);
+}
+
 static VALUE num_alloc(VALUE klass) {
   decNumber self_struct, *self_ptr;
   decContext context;
@@ -447,10 +455,59 @@ static VALUE num_power(VALUE self, VALUE rval) {
   return result;
 }
 
+void con_setup_rounding_constant( VALUE rounding_names, VALUE rounding_numbers, const char *sym_name, const char *const_name, enum rounding round ) {
+  VALUE round_num, round_sym;
+  round_num = INT2FIX(round);
+  round_sym = ID2SYM(rb_intern(sym_name));
+  rb_define_const( cDecContext, const_name, round_num );
+  rb_hash_aset( rounding_names, round_num, round_sym );
+  rb_hash_aset( rounding_numbers, round_sym, round_num );
+  return;
+}
+
 void Init_dec_number() {
+  /****
+       DecContext
+   ****/
+
+  // *** constants and enums
+  enum rounding round;
+  VALUE rounding_names, rounding_numbers, round_default_num;
   cDecContext = rb_define_class("DecContext", rb_cObject);
+  rounding_names = rb_hash_new();
+  rb_define_const( cDecContext, "ROUNDING_NAMES", rounding_names );
+  rounding_numbers = rb_hash_new();
+  rb_define_const( cDecContext, "ROUNDING_NUMBERS", rounding_numbers );
+  con_setup_rounding_constant( rounding_names, rounding_numbers,
+			       "ceil",      "ROUND_CEIL",   DEC_ROUND_CEILING );
+  con_setup_rounding_constant( rounding_names, rounding_numbers,
+			       "down",      "ROUND_DOWN",      DEC_ROUND_DOWN );
+  con_setup_rounding_constant( rounding_names, rounding_numbers,
+			       "floor",     "ROUND_FLOOR",     DEC_ROUND_FLOOR );
+  con_setup_rounding_constant( rounding_names, rounding_numbers,
+			       "half_down", "ROUND_HALF_DOWN", DEC_ROUND_HALF_DOWN );
+  con_setup_rounding_constant( rounding_names, rounding_numbers,
+			       "half_even", "ROUND_HALF_EVEN", DEC_ROUND_HALF_EVEN );
+  con_setup_rounding_constant( rounding_names, rounding_numbers,
+			       "half_up",   "ROUND_HALF_UP",   DEC_ROUND_HALF_UP );
+  con_setup_rounding_constant( rounding_names, rounding_numbers,
+			       "up",        "ROUND_UP",        DEC_ROUND_UP );
+  con_setup_rounding_constant( rounding_names, rounding_numbers,
+			       "up05",      "ROUND_05UP",      DEC_ROUND_05UP );
+  // DEC_ROUND_DEFAULT is a macro with an extra ; so be careful
+  round = DEC_ROUND_DEFAULT;
+  round_default_num = INT2FIX(round);
+  rb_hash_aset( rounding_numbers, ID2SYM(rb_intern("default")), round_default_num );
+  rb_define_const( cDecContext, "ROUND_DEFAULT", round_default_num );
+
+  // *** methods
   rb_define_alloc_func(cDecContext, con_alloc);
   rb_define_method(cDecContext, "initialize", con_initialize, -1);
+  rb_define_method(cDecContext, "rounding", con_get_rounding, 0);
+
+  /****
+       DecNumber
+   ****/
   cDecNumber = rb_define_class("DecNumber", rb_cNumeric );
   rb_define_alloc_func(cDecNumber, num_alloc);
   rb_define_method(cDecNumber, "initialize", num_initialize, -1);
