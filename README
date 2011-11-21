@@ -5,16 +5,12 @@ that subclasses Numeric.
 
 The main benefit over BigDecimal and other things is that each instance carries it's own context around with it in a DecContext object. The context is what dertimines the precision and rounding behavior.
 
-An example of this in use might be a gas station where there are pump prices with 10ths of cents and store prices with only cents. The register sets a precision of 2 rounding up, and it can use the prices reported from the pump without incident.
-
-Another example is a database with Decimal columns with differing precision and where you can't accept using Floats.
-
-Another use case would be bitcoin, where you need an arbitrary precision, mixed with dollars.
+An example is a database with Decimal columns with differing precision and where you can't accept using Floats.
 
 I don't expect to instantiate these object directly, instead I will bind them to SQL Decimal in an ORM, or using some sort of Money class.
 
 If you'd like to help out, please write tests!
 
-Currently they are not very good citizens of the Numeric family and try to give you back DecNumber objects whenever used. This is intentional. It might be a better idea in a Money class than returned from a db, however.
+Currently they try to give you back DecNumber objects whenever used, including as the rval with another Numeric.
 
 TODO: Most of the methods should accept a context as an argument. Currently the context is attached to the receiver.
