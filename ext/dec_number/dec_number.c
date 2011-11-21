@@ -1,5 +1,6 @@
 #include "ruby.h"
 #define DECNUMDIGITS 34
+#define DECSUBSET 0
 #include "decNumber.h"
 #include <stdio.h>
 
@@ -54,6 +55,9 @@ VALUE cDecContext;
   result = rb_funcall( cDecNumber, rb_intern("new"), 0 );		\
   Data_Get_Struct(result,  decNumber, result_ptr)
 
+/*****
+      DecContext
+ *****/
 static VALUE con_alloc(VALUE klass) {
   decContext self_struct, *self_ptr;
   VALUE self;
@@ -62,15 +66,27 @@ static VALUE con_alloc(VALUE klass) {
   return self;
 }
 
+static VALUE con_set_digits(VALUE self, VALUE new_value) {
+  decContext *self_ptr;
+  Data_Get_Struct(self, decContext, self_ptr);
+  self_ptr->digits = FIX2INT(new_value);
+  return INT2FIX(self_ptr->digits);
+}
+
 static VALUE con_initialize(int argc, VALUE *argv, VALUE self) {
   decContext *self_ptr;
-  VALUE from;
-  rb_scan_args( argc, argv, "01", &from );
+  VALUE digits;
+  rb_scan_args( argc, argv, "01", &digits );
 
   Data_Get_Struct(self, decContext, self_ptr);
   decContextDefault(self_ptr, DEC_INIT_BASE);
   self_ptr->traps = 0; // no traps TODO: error handling
-  self_ptr->digits = DECNUMDIGITS;
+
+  if ( NIL_P(digits) ) {
+    self_ptr->digits = DECNUMDIGITS;
+  } else {
+    con_set_digits(self,digits);
+  }
 
   // TODO: Handle arguments
 
@@ -108,6 +124,50 @@ static VALUE con_set_rounding(VALUE self, VALUE new_rounding) {
   return new_rounding;
 }
 
+static VALUE con_get_digits(VALUE self) {
+  decContext *self_ptr;
+  int digits;
+  VALUE r_fixnum;
+
+  Data_Get_Struct(self, decContext, self_ptr);
+  digits = self_ptr->digits;
+  r_fixnum = INT2FIX(digits);
+
+  return r_fixnum;
+}
+
+static VALUE con_get_emin(VALUE self) {
+  decContext *self_ptr;
+  Data_Get_Struct(self, decContext, self_ptr);
+  return INT2FIX(self_ptr->emin);
+}
+
+static VALUE con_set_emin(VALUE self, VALUE new_value) {
+  decContext *self_ptr;
+  Data_Get_Struct(self, decContext, self_ptr);
+  self_ptr->emin = FIX2INT(new_value);
+  return INT2FIX(self_ptr->emin);
+}
+
+static VALUE con_get_emax(VALUE self) {
+  decContext *self_ptr;
+  Data_Get_Struct(self, decContext, self_ptr);
+  return INT2FIX(self_ptr->emax);
+}
+
+static VALUE con_set_emax(VALUE self, VALUE new_value) {
+  decContext *self_ptr;
+  Data_Get_Struct(self, decContext, self_ptr);
+  self_ptr->emax = FIX2INT(new_value);
+  return INT2FIX(self_ptr->emax);
+}
+// /DecContext
+
+
+/*****
+      DecNumber
+ *****/
+
 static VALUE num_alloc(VALUE klass) {
   decNumber self_struct, *self_ptr;
   decContext context;
@@ -123,10 +183,10 @@ static VALUE num_alloc(VALUE klass) {
 static VALUE num_initialize(int argc, VALUE *argv, VALUE self) {
   decNumber *self_ptr;
   decContext *context_ptr;
-  VALUE from, r_str, context;
+  VALUE from, r_str, context, digits;
 
-  rb_scan_args( argc, argv, "01", &from );
-  context = rb_funcall( cDecContext, rb_intern("new"), 0 );
+  rb_scan_args( argc, argv, "02", &from, &digits );
+  context = rb_funcall( cDecContext, rb_intern("new"), 1, digits );
   rb_iv_set( self, "@context", context );
   Data_Get_Struct(context, decContext, context_ptr);
   Data_Get_Struct(self, decNumber, self_ptr);
@@ -528,11 +588,19 @@ void Init_dec_number() {
   rb_define_method(cDecContext, "initialize", con_initialize, -1);
   rb_define_method(cDecContext, "rounding", con_get_rounding, 0);
   rb_define_method(cDecContext, "rounding=", con_set_rounding, 1);
+  rb_define_method(cDecContext, "digits", con_get_digits, 0);
+  rb_define_method(cDecContext, "digits=", con_set_digits, 1);
+  rb_define_method(cDecContext, "emin", con_get_emin, 0);
+  rb_define_method(cDecContext, "emin=", con_set_emin, 1);
+  rb_define_method(cDecContext, "emax", con_get_emax, 0);
+  rb_define_method(cDecContext, "emax=", con_set_emax, 1);
+
   /****
        DecNumber
    ****/
   cDecNumber = rb_define_class("DecNumber", rb_cNumeric );
   rb_define_alloc_func(cDecNumber, num_alloc);
+  rb_define_attr(  cDecNumber, "context", 1, 1);
   rb_define_method(cDecNumber, "initialize", num_initialize, -1);
   rb_define_method(cDecNumber, "to_s", num_to_s, 0);
   rb_define_method(cDecNumber, "to_i", num_to_i, 0);
