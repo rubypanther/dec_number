@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-require 'decimal'
+#require 'decimal'
 require 'bigdecimal'
 require 'dec_number'
 require 'benchmark'
@@ -14,13 +14,13 @@ bm(6) do |x|
       ((a * b + DecNumber.new(rand().to_s) - b / a) ** b).to_s
     end
   end
-  x.report("decimal") do
-    a = Decimal.new n.to_s
-    b = Decimal.new m.to_s
-    100_000.times do
-      ((a * b + Decimal.new(rand().to_s) - b / a) ** b).to_s
-    end
-  end
+#  x.report("decimal") do
+#    a = Decimal.new n.to_s
+#    b = Decimal.new m.to_s
+#    100_000.times do
+#      ((a * b + Decimal.new(rand().to_s) - b.divide(a) ) ** b).to_s
+#    end
+#  end
   x.report("bigdecimal") do
     a = BigDecimal.new n.to_s
     b = BigDecimal.new m.to_s
