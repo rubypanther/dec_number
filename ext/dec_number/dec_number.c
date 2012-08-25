@@ -80,7 +80,7 @@ static VALUE con_initialize(int argc, VALUE *argv, VALUE self) {
 
   Data_Get_Struct(self, decContext, self_ptr);
   decContextDefault(self_ptr, DEC_INIT_BASE);
-  self_ptr->traps = 0; // no traps TODO: error handling
+  self_ptr->traps = 0; /* no traps TODO: error handling */
 
   if ( NIL_P(digits) ) {
     self_ptr->digits = DECNUMDIGITS;
