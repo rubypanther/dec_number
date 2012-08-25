@@ -4,7 +4,7 @@
 #include "decNumber.h"
 #include <stdio.h>
 
-// Backwards compat for old rubies
+/* Backwards compat for old rubies */
 #if !defined(RSTRING_LEN)
 # define RSTRING_LEN(x) (RSTRING(x)->len)
 # define RSTRING_PTR(x) (RSTRING(x)->ptr)
@@ -88,7 +88,7 @@ static VALUE con_initialize(int argc, VALUE *argv, VALUE self) {
     con_set_digits(self,digits);
   }
 
-  // TODO: Handle arguments
+  /* TODO: Handle arguments */
 
   return self;
 }
@@ -161,7 +161,7 @@ static VALUE con_set_emax(VALUE self, VALUE new_value) {
   self_ptr->emax = FIX2INT(new_value);
   return INT2FIX(self_ptr->emax);
 }
-// /DecContext
+/* /DecContext */
 
 
 /*****
@@ -192,7 +192,7 @@ static VALUE num_initialize(int argc, VALUE *argv, VALUE self) {
   Data_Get_Struct(self, decNumber, self_ptr);
 
   if ( NIL_P(from) ) {
-    //    decNumberFromString(dec_num_ptr, "0", &dec_context);
+    /*    decNumberFromString(dec_num_ptr, "0", &dec_context); */
   } else {
     r_str = rb_funcall(from, rb_intern("to_s"), 0);
     decNumberFromString(self_ptr, StringValuePtr( r_str ), context_ptr);
@@ -200,7 +200,7 @@ static VALUE num_initialize(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
-// TODO: does this work?
+/* TODO: does this work? */
 static VALUE dec_number_from_struct(decNumber source_dec_num) {
   VALUE new;
   decNumber *dec_num_ptr;
@@ -220,7 +220,7 @@ static VALUE dec_number_from_string(VALUE obj, VALUE from) {
 
   Data_Get_Struct(new, decNumber, dec_num_ptr);
   if ( decNumberIsNaN( dec_num_ptr ) ) {
-    // FIXME: Just use the sprintf from C, silly
+    /* FIXME: Just use the sprintf from C, silly */
     r_str = rb_funcall( from, rb_intern( "to_s" ), 0 );
     err = rb_funcall( rb_mKernel, rb_intern( "sprintf" ), 2, rb_str_new2("invalid value for DecNumber: %s"), r_str );
     rb_raise(rb_eArgError, StringValuePtr( err ) );
@@ -231,7 +231,7 @@ static VALUE dec_number_from_string(VALUE obj, VALUE from) {
   return ret;
 }
 
-// TODO: Not sure if this should this return as a NaN when not a number, or as a 0 like nil.to_i
+/* TODO: Not sure if this should this return as a NaN when not a number, or as a 0 like nil.to_i */
 static VALUE to_dec_number(VALUE obj) {
   decNumber *dec_num_ptr;
   VALUE dec_num;
@@ -350,7 +350,7 @@ static VALUE num_negate(VALUE self) {
   return new;
 }
 
-// needs to check for things like nil and false, etc, not convert everything. Probably only convert numbers.
+/* needs to check for things like nil and false, etc, not convert everything. Probably only convert numbers. */
 static VALUE num_compare(VALUE self, VALUE rval) {
   VALUE ret, result, tmp_obj;
   int32_t tmp_n, klass;
@@ -477,7 +477,7 @@ static VALUE num_divmod(VALUE self, VALUE rval) {
   result_rem = rb_funcall( cDecNumber, rb_intern("new"), 0 );		\
   Data_Get_Struct(result_rem,  decNumber, result_rem_ptr);
 
-  // There might be a more efficient way to get these
+  /* There might be a more efficient way to get these */
   decNumberDivideInteger( result_int_ptr, self_ptr, rval_ptr, context_ptr );
   decNumberRemainder( result_rem_ptr, self_ptr, result_int_ptr, context_ptr);
   result_ary = rb_ary_new3( 2, result_int, result_rem );
@@ -515,7 +515,7 @@ static VALUE num_round(int argc, VALUE *argv, VALUE self) {
   rb_scan_args( argc, argv, "01", &rval );
   if ( NIL_P( rval ) ) {
     rval = INT2FIX( 0 );
-  } else { // probably not necessary
+  } else { /* probably not necessary */
     if ( ! rb_obj_is_kind_of( rval, cDecNumber ) ) {
       rval = rb_funcall( rval, rb_intern("to_i"), 0 );
     }
@@ -553,7 +553,7 @@ void Init_dec_number() {
        DecContext
    ****/
 
-  // *** constants and enums
+  /* *** constants and enums */
   enum rounding round;
   VALUE rounding_names, rounding_numbers, round_default_num;
   cDecContext = rb_define_class("DecContext", rb_cObject);
@@ -577,13 +577,13 @@ void Init_dec_number() {
 			       "up",        "ROUND_UP",        DEC_ROUND_UP );
   con_setup_rounding_constant( rounding_names, rounding_numbers,
 			       "up05",      "ROUND_05UP",      DEC_ROUND_05UP );
-  // DEC_ROUND_DEFAULT is a macro with an extra ; so be careful
+  /* DEC_ROUND_DEFAULT is a macro with an extra ; so be careful */
   round = DEC_ROUND_DEFAULT;
   round_default_num = INT2FIX(round);
   rb_hash_aset( rounding_numbers, ID2SYM(rb_intern("default")), round_default_num );
   rb_define_const( cDecContext, "ROUND_DEFAULT", round_default_num );
 
-  // *** methods
+  /* *** methods */
   rb_define_alloc_func(cDecContext, con_alloc);
   rb_define_method(cDecContext, "initialize", con_initialize, -1);
   rb_define_method(cDecContext, "rounding", con_get_rounding, 0);

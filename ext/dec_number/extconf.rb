@@ -3,7 +3,7 @@ require 'mkmf'
 
 decNumber_dir = './decNumber/'
 
-if RUBY_VERSION >= "1.9"
+if RUBY_VERSION >= "1.9" and RUBY_VERSION <= "2.0"
   begin
     require "ruby_core_source"
   rescue LoadError
@@ -31,7 +31,13 @@ $defs += ["-I#{decNumber_dir}"]
 dir_config('dec_number', decNumber_dir, decNumber_dir)
 have_library('decNumber','decNumberVersion','decNumber.h') or raise 'decNumber library not found :('
 
-if RUBY_VERSION >= "1.9"
+if RUBY_VERSION >= "2.0"
+  $defs.push("-DRUBY20")
+  unless create_makefile('dec_number')
+    STDERR.puts "\n\ncreate_makefile ate your cat2!"
+    exit(1)
+  end
+elsif RUBY_VERSION >= "1.9"
   $defs.push("-DRUBY19")
   hdrs = Proc.new do
     have_header("vm_core.h")
